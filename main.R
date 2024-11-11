@@ -7,6 +7,13 @@ library(pROC)
 library(rms)
 library(zeallot)
 
+library(igraph)
+library(readxl)
+library(pcalg)
+library(stdReg)
+
+#### Causal Discovery ####
+
 # Load data frame.
 df <- read.csv("./data/preprocessed.csv", colClasses = "factor", na.string = "")
 summary(df)
@@ -178,3 +185,79 @@ dev.off()
 pdf(paste0("./data/extended_model_out_calibration.pdf"))
 val.prob(extended_out_of_sample$pred_probs[, 2], extended_out_of_sample$true_labels == "yes")
 dev.off()
+
+#### Causal Inference ####
+
+# Return the ACE estimator as LaTeX formula.
+identify_ace <- function(x, y, m) {
+    # Get variables.
+    v <- nodes(m)
+    # Get adjacency matrix.
+    a <- bnlearn::amat(m)
+    colnames(a) <- NULL
+    rownames(a) <- NULL
+    # Labels to index.
+    x <- which(v == x)
+    y <- which(v == y)
+    # Get adjustment set.
+    z <- pcalg::backdoor(a, x, y, type = "dag", verbose = TRUE)
+    # Index to labels.
+    sapply(z, function(i) v[i])
+}
+
+# Estimate ACE from LaTeX (adjustment) formula and the data and target "yes" level.
+estimate_ace <- function(x, y, z, d, l, r) {
+    # Set level "l" as 1.
+    d_prime <- data.frame(d)
+    d_prime[, y] <- as.factor(ifelse(d_prime[, y] == l, 1, 0))
+    # Define formula.
+    f <- paste(y, "~", x)
+    if (!is.null(z)) {
+        f <- paste(f, "+", paste(z, collapse = "+"))
+    }
+    # Fit model.
+    f <- glm(as.formula(f), data = d_prime, family = "binomial")
+    # Estimate the ACE.
+    f <- stdGlm(f, data = d_prime, X = x)
+
+    summary(f, contrast = "ratio", reference = r)
+}
+
+# Read model from file.
+m <- read.bif("./data/extended_model.bif")
+# Read the data from file.
+d <- read.csv("./data/preprocessed.csv", colClasses = "factor", na.string = "")
+# Impute missing data.
+d <- impute(m, data = d, method = "bayes-lw")
+# Read treatment-outcome pairs from file.
+p <- read_excel("./data/treatment_outcome_pairs.xlsx")
+p <- as.data.frame(p)
+
+# Open log file.
+sink("./data/causal_inference.log")
+# Print separator.
+sep <- paste(rep("=", 80), collapse = "")
+cat(sep, "\n")
+
+# Estimate ACE for each treatment-outcome pair.
+for (i in 1:nrow(p)) {
+    # Identify effect.
+    x <- p[i, "treatment"]
+    y <- p[i, "outcome"]
+    z <- identify_ace(x, y, m)
+    # Estimate effect unadjusted and adjusted effects.
+    l <- p[i, "level"]
+    r <- p[i, "reference"]
+    print("Unadjusted effect:")
+    print(estimate_ace(x, y, NULL, d, l, r))
+    print("Adjusted effect:")
+    print(estimate_ace(x, y, z, d, l, r))
+    # Print formatted output.
+    cat(sep, "\n")
+}
+
+# Close log file.
+sink()
+
+# Print message.
+cat("Check ./data/causal_inference.log for results.\n")
