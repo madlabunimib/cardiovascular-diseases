@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Bernasconi"
+  given-names: "Alice"
+  orcid: "http://orcid.org/0000-0001-8522-6882"
+- family-names: "Zanga"
+  given-names: "Alessio"
+  orcid: "http://orcid.org/0000-0003-4423-2121"
+- family-names: "Lucas"
+  given-names: "Peter J. F."
+  orcid: "http://orcid.org/0000-0001-5454-2428"
+- family-names: "Scutari"
+  given-names: "Marco"
+  orcid: "http://orcid.org/0000-0002-2151-7266"
+- family-names: "Trama"
+  given-names: "Annalisa"
+  orcid: "http://orcid.org/0000-0001-8220-9833"
+- family-names: "Stella"
+  given-names: "Fabio"
+  orcid: "https://orcid.org/0000-0002-1394-0507"
+title: "A Causal Network Model to Estimate the Cardiotoxic Effect of Oncological Treatments in Young Breast Cancer Survivors"
+version: 1.0.0
+doi: 10.4103/2249-4863.161306
+url: "https://github.com/madlabunimib/cardiovascular-diseases"
