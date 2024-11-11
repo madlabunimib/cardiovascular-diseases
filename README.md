@@ -25,3 +25,7 @@ If you don't want to use Docker, you can run the following command:
 R -e 'install.packages("renv"); renv::restore()'
 Rscript main.R
 ```
+
+## Graphical User Interface (GUI)
+
+The folder `gui` contains the code to run the graphical user interface (GUI) to estimate the cardiotoxic effect of oncological treatments in young breast cancer survivors. The GUI is written in `Python` using the `pysmile` package. Run the `main.py` script to start the GUI.
